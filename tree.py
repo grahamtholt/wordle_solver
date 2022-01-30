@@ -47,11 +47,17 @@ class Node:
         if offset >= len(flag_order):
             return len(self.wordset)
         elif flag_order[offset] == 1:
+            if not self.children[w_order[offset]]:
+                return 0
             return self.children[w_order[offset]].count_partition(
                     word, vec, offset=offset+1)
         else:
             # otherwise the rest of the letters should not be in the word
-            exclist = [self.children[k].wordset for k in w_order[offset:]]
+            exclist = [self.children[k].wordset for k in w_order[offset:]
+                       if self.children[k]
+                       ]
+            if not exclist:
+                return len(self.wordset)
             return len(self.wordset) - len(set.union(*exclist))
 
     def get_partition(self, word, vec, offset=0):
@@ -69,11 +75,17 @@ class Node:
         if offset >= len(flag_order):
             return self.wordset
         elif flag_order[offset] == 1:
+            if not self.children[w_order[offset]]:
+                return {}
             return self.children[w_order[offset]].get_partition(
                     word, vec, offset=offset+1)
         else:
             # otherwise the rest of the letters should not be in the word
-            exclist = [self.children[k].wordset for k in w_order[offset:]]
+            exclist = [self.children[k].wordset for k in w_order[offset:]
+                       if self.children[k]
+                       ]
+            if not exclist:
+                return self.wordset
             return self.wordset.difference(set.union(*exclist))
 
 

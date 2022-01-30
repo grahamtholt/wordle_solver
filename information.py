@@ -41,8 +41,8 @@ def get_entropy_of_word(root: Node, word, wordlength=5):
     return -1*sum([p*np.log2(p) for p in probs if p > 0])
 
 
-def get_best_words(root: Node, n=10):
+def get_best_words(wordlist, root, n=10):
     entropies = list(map(
-        lambda x: get_entropy_of_word(root, x), root.wordset))
-    return sorted(zip(root.wordset, entropies),
+        lambda x: get_entropy_of_word(root, x), wordlist))
+    return sorted(zip(wordlist, entropies),
                   key=lambda x: x[1], reverse=True)[0:n]
