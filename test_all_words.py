@@ -1,60 +1,104 @@
-import information as info
-import tree
 import pandas as pd
+import time
+import solver
+import multiprocessing
+from random import randint
+import numpy as np
 import time
 
 FIRST_GUESS = "soare"
-with open('resources/guessable_words.txt', 'r') as fi:
-    GUESS_WORDS = [l.strip() for l in fi.readlines()]
 with open('resources/mystery_words.txt', 'r') as fi:
     HIDDEN_WORDS = [l.strip() for l in fi.readlines()]
 
-
-def evaluate_guess(guess, mystery):
-    output = []
-    for i, char in enumerate(guess):
-        if mystery[i] == char:
-            output.append(2)
-        elif mystery[i] != char and char in mystery:
-            output.append(1)
-        else:
-            output.append(0)
-    return output
+DATA = pd.read_parquet('resources/data.parquet')
+SOLS = DATA.shape[0]
+CORRECT = 242
 
 
-def find_wordle(mystery, root):
-    """
-    Returns the number of total word entries required to get the wordle
-    """
+def find_wordle(mystery, max_guesses=6):
     start = time.perf_counter()
-    counter = 1
-    first_output = evaluate_guess(FIRST_GUESS, mystery)
-    partition = root.get_single_part(FIRST_GUESS, first_output)
-    possible_words = len(partition)
-    new_root = tree.Node()
-    while possible_words > 1:
-        new_root.clear()
-        tree.build_tree_from_list(new_root, partition)
-        guess = info.get_best_words(GUESS_WORDS, new_root)[0][0]
-        output = evaluate_guess(guess, mystery)
-        partition = new_root.get_single_part(guess, output)
+    counter = 0
+    observations = []
+    guesses = []
+    guess_entropies = []
+    sol_size = SOLS
+    sizes = [SOLS]
+    gotitright = False
+    while sol_size > 2 and counter < max_guesses:
+        # Generate guess based on internal state
+        guess, entropy = solver.get_optimal_guess(DATA, observations)
         counter = counter + 1
-        possible_words = len(partition)
-    assert(list(partition)[0] == mystery)
+        guesses.append(guess)
+        guess_entropies.append(entropy)
+        observations.append((guess, solver.evaluate_guess(guess, mystery)))
+        partition = list(solver.get_partition(DATA, observations).index)
+        sol_size = len(partition)
+        sizes.append(sol_size)
+
+    # Down to two or one words
+    if sol_size == 2:
+        counter = counter + 1
+        choice = randint(0, 1)
+        guess = partition[choice]
+        guesses.append(guess)
+        guess_entropies.append(np.nan)
+        val = solver.evaluate_guess(guess, mystery)
+        observations.append((guess, val))
+        if val == CORRECT:
+            gotitright = True
+            sizes.append(0)
+        else:
+            sizes.append(1)
+            counter = counter + 1
+            guess = partition[1-choice]
+            guesses.append(guess)
+            guess_entropies.append(np.nan)
+            val = solver.evaluate_guess(guess, mystery)
+            observations.append((guess, val))
+            if val == CORRECT:
+                sizes.append(0)
+                gotitright = True
+
+    elif sol_size == 1:
+        counter = counter + 1
+        guess = partition[0]
+        guesses.append(guess)
+        guess_entropies.append(np.nan)
+        val = solver.evaluate_guess(guess, mystery)
+        observations.append((guess, val))
+        if val == CORRECT:
+            gotitright = True
+
     end = time.perf_counter()
-    return counter + 1, end-start
+    runtime = end-start
+
+    guesses = pad(guesses)
+    guess_entropies = pad(guess_entropies)
+    values = pad([t[1] for t in observations])
+
+    stats = {}
+    stats["hidden_word"] = mystery
+    stats["runtime_s"] = runtime
+    stats["num_guesses"] = counter
+    stats["correct"] = gotitright
+    for i, g in enumerate(guesses):
+        stats[f"guess_{i}"] = g
+    for i, e in enumerate(guess_entropies):
+        stats[f"entropy_{i}"] = e
+    for i, v in enumerate(values):
+        stats[f"partition_label_{i}"] = v
+    return stats
+
+
+def pad(x: list, l=6):
+    return x + [np.nan] * (l - len(x))
 
 
 def main():
-    root = tree.Node()
-    tree.build_tree_from_list(root, HIDDEN_WORDS)
+    pool = multiprocessing.Pool(8)
+    stats = pool.map(find_wordle, HIDDEN_WORDS)
 
-    num_guesses, times = zip(*[find_wordle(word, root)
-                             for word in HIDDEN_WORDS])
-    data = pd.DataFrame(
-        {"Words": HIDDEN_WORDS[:2],
-         "Guesses": num_guesses,
-         "Runtime(s)": times})
+    data = pd.DataFrame(stats)
     data.to_csv('guessing_all_wordles.csv')
 
 
