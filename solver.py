@@ -18,8 +18,18 @@ def timing(f):
 
 @timing
 @njit
-def get_counts(arr):
-    counts = np.empty((243, arr.shape[1]))
+def apply_count_values(arr, n_unique_vals=243):
+    """Function equivalent to df.apply(pd.Series.count_values),
+    but much, much faster.
+
+    Probably only works as long as we already have the number of unique values
+    and also integer values only.
+
+    Args:
+        arr: numpy array of a pandas dataframe
+        n_unique_vals: the number of unique integer values in arr
+    """
+    counts = np.zeros((n_unique_vals, arr.shape[1]))
     for i in range(arr.shape[1]):
         for x in arr[:, i]:
             counts[x, i] = counts[x, i]+1
@@ -31,7 +41,8 @@ def get_entropies(data: pd.DataFrame):
     """
     Compute entropies for words in wide-format df
     """
-    counts = pd.DataFrame(get_counts(data.to_numpy()), columns=data.columns)
+    counts = pd.DataFrame(apply_count_values(
+        data.to_numpy(copy=True)), columns=data.columns)
     probs = (counts / counts.sum(axis=0)).replace(0, np.nan)
     nplogp = -probs * np.log2(probs)
     return nplogp.sum()
