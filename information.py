@@ -1,6 +1,7 @@
 import string
 import numpy as np
 from tree import Node
+import tree
 from itertools import product
 
 ALPHABET = string.ascii_lowercase
@@ -35,14 +36,26 @@ def get_entropy_ordering(file, alpha=ALPHABET):
 
 
 def get_entropy_of_word(root: Node, word, wordlength=5):
-    counts = [root.count_partition(word, v)
-              for v in product([0, 1], repeat=wordlength)]
-    probs = [c / len(root.wordset) for c in counts]
-    return -1*sum([p*np.log2(p) for p in probs if p > 0])
+    parts = [root.get_max_partitions(word, v)
+             for v in product([0, 1], repeat=wordlength)]
+    # Flatten list
+    counts_flat = [len(item) for sublist in parts for item in sublist]
+    probs = [c / len(root.wordset) for c in counts_flat if c > 0]
+    return -1*sum([p*np.log2(p) for p in probs])
+
+
+def get_entropy_of_word_sets(wordlist, word, wordlength=5):
+    parts = [tree.get_single_part(wordlist, word, v)
+             for v in product([0, 1, 2], repeat=wordlength)]
+
+    # Flatten list
+    counts = [len(item) for item in parts]
+    probs = [c / len(wordlist) for c in counts if c > 0]
+    return -1*sum([p*np.log2(p) for p in probs])
 
 
 def get_best_words(wordlist, root, n=10):
-    entropies = list(map(
-        lambda x: get_entropy_of_word(root, x), wordlist))
+    entropies = map(
+        lambda x: get_entropy_of_word(root, x), wordlist)
     return sorted(zip(wordlist, entropies),
                   key=lambda x: x[1], reverse=True)[0:n]
