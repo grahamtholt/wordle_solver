@@ -27,6 +27,7 @@ class Wordler:
         while self.sol_size > 2 and counter < max_guesses:
             # Generate guess based on internal state
             guess, entropy = self.generate_guess()
+            counter = counter + 1
             print(f"Guess {guess} (entropy {entropy:.2f})")
             self.receive_observation(guess)
             self.generate_partition()
