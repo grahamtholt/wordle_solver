@@ -4,19 +4,33 @@ import time
 from functools import wraps
 from numba import njit
 
-
-def timing(f):
-    @wraps(f)
-    def wrap(*args, **kw):
-        ts = time.perf_counter()
-        result = f(*args, **kw)
-        te = time.perf_counter()
-        print(f"{f.__name__} took {te-ts:2.4f} sec")
-        return result
-    return wrap
+DEBUG = False
 
 
-@timing
+def timing(*args):
+    def _timing(f):
+        if debug:
+            @wraps(f)
+            def wrap(*args, **kw):
+                ts = time.perf_counter()
+                result = f(*args, **kw)
+                te = time.perf_counter()
+                print(f"{f.__name__} took {te-ts:2.4f} sec")
+                return result
+            return wrap
+        else:
+            return f
+    if len(args) == 1 and callable(args[0]):
+        # No optional argument to decorator
+        debug = True
+        return _timing(args[0])
+    else:
+        # Optional argument to decorator
+        debug = args[0]
+        return _timing
+
+
+@timing(DEBUG)
 @njit
 def apply_count_values(arr, n_unique_vals=243):
     """Function equivalent to df.apply(pd.Series.count_values),
@@ -36,7 +50,7 @@ def apply_count_values(arr, n_unique_vals=243):
     return counts
 
 
-@timing
+@timing(DEBUG)
 def get_entropies(data: pd.DataFrame):
     """
     Compute entropies for words in wide-format df
@@ -67,7 +81,7 @@ def get_optimal_guess(data: pd.DataFrame, obs: list = []):
     return entropies.idxmax(), entropies.max()
 
 
-@timing
+@timing(DEBUG)
 def get_partition(data: pd.DataFrame, obs: list):
     """Get the possible partition of hidden words given previous observations
 
@@ -84,6 +98,19 @@ def get_partition(data: pd.DataFrame, obs: list):
 
 
 def evaluate_guess(guess: str, mystery: str):
+    """Get the partition label for the mystery word given the guess.
+    There are 3^n different partitions, where n is the number of characters in
+    guess or mystery.
+
+    Args:
+        guess: word being guessed
+        mystery: candidate for mystery word
+
+    Returns:
+        A base 10 integer based on the base 3 output digits of wordle.
+        Considers a grey letter to be 0, a yellow letter to be 1, and a green
+        letter to be 2.
+    """
     output = []
     for i, char in enumerate(guess):
         if mystery[i] == char:
