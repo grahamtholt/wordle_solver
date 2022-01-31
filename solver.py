@@ -62,6 +62,25 @@ def get_entropies(data: pd.DataFrame):
     return nplogp.sum()
 
 
+def get_entropy(word, data: pd.DataFrame, obs: list = []):
+    """Get the optimal guess given previous observations.
+
+    Args:
+        data: a DataFrame containing all possible function outputs
+        obs: a list of observed guess, value pairs
+
+    Returns:
+        The word that maximizes the partition entropy over the remaining
+        possible hidden words
+        The partition entropy of the returned word
+    """
+    if obs:
+        entropies = get_entropies(get_partition(data, obs))
+    else:
+        entropies = get_entropies(data)
+    return entropies.loc[word]
+
+
 def get_optimal_guess(data: pd.DataFrame, obs: list = []):
     """Get the optimal guess given previous observations.
 

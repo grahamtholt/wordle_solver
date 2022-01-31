@@ -18,18 +18,23 @@ class Wordler:
 
         self.load_data()
 
-    def start(self):
-        self.loop()
+    def start(self, max_guesses=6, custom_start=None):
+        self.loop(max_guesses, custom_start)
         self.stop()
 
-    def loop(self, max_guesses=6):
+    def loop(self, max_guesses, custom_start):
         counter = 0
         while self.sol_size > 2 and counter < max_guesses:
             # Generate guess based on internal state
-            guess, entropy = self.generate_guess()
+            if custom_start and counter == 0:
+                guess, entropy = self.custom_guess(custom_start)
+            else:
+                guess, entropy = self.generate_guess()
             counter = counter + 1
             print(f"Guess {guess.upper()} (entropy {entropy:.2f})")
-            self.receive_observation(guess)
+            valid = self.receive_observation(guess)
+            if not valid:
+                return
             self.generate_partition()
 
         part_string = ' or '.join([f"\"{w.upper()}\"" for w in self.partition])
@@ -54,6 +59,9 @@ class Wordler:
     def generate_guess(self):
         return solver.get_optimal_guess(self.data, self.observations)
 
+    def custom_guess(self, word):
+        return word, solver.get_entropy(word, self.data, self.observations)
+
     def receive_observation(self, guess, tries_remaining=3):
         raw = input((f"Enter Wordle response for \"{guess.upper()}\" "
                      "(0=gray, 1=yellow, 2=green):\t"))
@@ -61,11 +69,13 @@ class Wordler:
         if len(clean) == self.word_length:
             obs = int(clean, base=3)
             self.observations.append((guess, obs))
+            return True
         elif tries_remaining > 0:
             print("Invalid input. Please try again...")
             self.receive_observation(guess, tries_remaining=tries_remaining-1)
+            return True
         else:
-            self.stop()
+            return False
 
     def generate_partition(self):
         self.partition = set(solver.get_partition(
