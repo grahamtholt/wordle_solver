@@ -22,6 +22,15 @@ Finding the hidden word in 5 or 6 tries was typical of my Absurdle experience.
 The precomputed data take a few seconds to load, but finding optimal guesses takes less than a second for these small word-lengths.
 
 ## Usage
+First, install dependencies into a conda environment (named "wordle_solver")
+```
+conda env create -f environment.yml
+```
+and activate the environment.
+```
+conda activate wordle_solver
+```
+
 To use the simple commandline app with the python interpreter, simply:
 
 ```
@@ -53,5 +62,5 @@ Choose "WOOZY"
 
 See the included `example.py` for an example of guessing the hidden word "crimp" for Absurdle using the backend.
 
-##Acknowledgments
+## Acknowledgments
 Many thanks to [Josh Wardle](https://powerlanguage.co.uk/), creator of Wordle, and [qntm](https://qntm.org/), creator of Absurdle.
