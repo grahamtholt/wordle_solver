@@ -10,7 +10,7 @@ te = time.perf_counter()
 print(f"Loaded database in {te-ts:2.4f} sec")
 
 # Assuming the word is "crimp"
-MYS = "light"
+MYS = "crimp"
 observations = []
 sol_size = data.shape[0]
 print(f"Started with {sol_size} possible words.")
