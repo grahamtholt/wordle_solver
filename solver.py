@@ -120,3 +120,7 @@ def evaluate_guess(guess: str, mystery: str):
         elif char not in mystery:
             output.append('0')
     return int(''.join(output), base=3)
+
+
+def compute_known(guess, mystery):
+    return np.base_repr(evaluate_guess(guess, mystery), 3).rjust(5, '0')
