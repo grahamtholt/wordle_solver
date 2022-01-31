@@ -23,9 +23,6 @@ if __name__ == '__main__':
         "Guess Word": guesses,
         "Value": values
     })
-    data.to_parquet('resources/data.parquet')
     wide = data.pivot(index="Hidden Word",
                       columns="Guess Word", values="Value")
-    wide.to_parquet('resources/wide.parquet')
-    alt = data.pivot(index="Guess Word", columns="Hidden Word", values="Value")
-    alt.to_parquet('resources/alt.parquet')
+    wide.to_parquet('resources/data.parquet')
