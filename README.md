@@ -7,7 +7,6 @@ Uses a word-list (currently from the wordle source code) and finds the guesses t
 
 ## Performance
 ![Guess distribution](./test/guess_distribution.svg)
-<img src="./test/guess_distribution.svg">
 
 The precomputed data take a few seconds to load, but finding optimal guesses takes less than a second for these small word-lengths.
 
@@ -15,16 +14,16 @@ The precomputed data take a few seconds to load, but finding optimal guesses tak
 To use the simple commandline app with the python interpreter, simply:
 
 ```
->>>import app
->>>wordler = app.Wordler('./resources/data.parquet')
->>> wordler = app.Wordler('./resources/data.parquet')
+>>> import app
+>>> wordler = app.Wordler()
 Loading data...
 >>> wordler.start()
-Guess soare (entropy 5.89)
+Guess SOARE (entropy 5.89)
 Enter Wordle response for "SOARE" (0=gray, 1=yellow, 2=green):	00000
-Guess clint (entropy 5.51)
+Guess CLINT (entropy 5.51)
 Enter Wordle response for "CLINT" (0=gray, 1=yellow, 2=green):	01102
 Choose randomly from "LIGHT" or "LIMIT"
+>>>
 ```
 
 See the included `example.py` for an example of guessing the hidden word "crimp" using the backend.

@@ -6,7 +6,7 @@ DEBUG = False
 
 
 class Wordler:
-    def __init__(self, datafile: str):
+    def __init__(self, datafile: str = "./resources/data.parquet"):
         self.word_length = 5
         self.datafile = datafile
         self.data = None
@@ -28,7 +28,7 @@ class Wordler:
             # Generate guess based on internal state
             guess, entropy = self.generate_guess()
             counter = counter + 1
-            print(f"Guess {guess} (entropy {entropy:.2f})")
+            print(f"Guess {guess.upper()} (entropy {entropy:.2f})")
             self.receive_observation(guess)
             self.generate_partition()
 
