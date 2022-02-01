@@ -19,6 +19,8 @@ Because of the dynamic approach used there, to get interesting results please tr
 Finding the hidden word in 5 or 6 tries was typical of my Absurdle experience.
 
 ### Speed
+Precomputation of data takes about a minute (73 seconds) but only needs to be completed the first run of the application.
+
 The precomputed data take a few seconds to load, but finding optimal guesses takes less than a second for these small word-lengths.
 
 ## Usage
@@ -31,13 +33,15 @@ and activate the environment.
 conda activate wordle_solver
 ```
 
+# Pip Installation
+Install dependencies using pip install -r requirements.txt
+
 To use the simple commandline app with the python interpreter, simply:
 
 ```
->>> import app
->>> wordler = app.Wordler()
+>>> python3 src/app.py
+Checking existance of precompted data...
 Loading data...
->>> wordler.start()
 Guess SOARE (entropy 5.89)
 Enter Wordle response for "SOARE" (0=gray, 1=yellow, 2=green):	00000
 Guess CLINT (entropy 5.51)
@@ -64,3 +68,21 @@ See the included `example.py` for an example of guessing the hidden word "crimp"
 
 ## Acknowledgments
 Many thanks to [Josh Wardle](https://powerlanguage.co.uk/), creator of Wordle, and [qntm](https://qntm.org/), creator of Absurdle.
+
+### Changes implemented in PR
+
+Improved calling of the original app
+
+Reorganization of source code into a source folder
+
+Addition of init scripts for ease of importing
+
+Pip installation steps made available 
+
+Addition of the pre-compute step
+
+### Thoughts of next steps
+
+I think we can think of a better search, we currently compute the entropies for 13,000 words when we expect each run to take at most 6. 
+
+Perhaps we could look into using vector notation, each word is 5x1 of base 3 and use a cosine difference to calculate entropy on the fly of our word vs all possible mysteries. Then the result of the guess brings down our solution space iteratively 
