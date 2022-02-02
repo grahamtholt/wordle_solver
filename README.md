@@ -18,18 +18,22 @@ In a rare few cases it gets it in 2 tries.
 But, sadly, it will never achieve the dream of the Wordle hole-in-one, as it chooses "SOARE" as maximum-entropy starting guess.
 
 Also by virtue of this approach we do quite well even against an adversarial opponent like [Absurdle](https://qntm.org/files/wordle/)!
-Because of the dynamic approach used there, to get interesting results please try the `custom_start` option in the `Wordler.start` method.
+Because of the dynamic approach used there, to get interesting results please try the `--custom-start` option.
 Finding the hidden word in 5 or 6 tries was typical of my Absurdle experience.
-
-### Speed
-Precomputation of data takes about a minute (73 seconds) but only needs to be completed the first run of the application.
-
-The precomputed data take a few seconds to load, but finding optimal guesses takes less than a second for these small word-lengths.
 
 This algorithm is not truly optimal (See [Cyrus Freshman's leaderboard](https://freshman.dev/wordle/#/leaderboard)), but performs almost as well as exhaustive methods, with an average guesses-per-word of 3.53.
 
-## Usage
-First, install dependencies into a conda environment (named "wordle_solver")
+### Speed
+Precomputing the colorings for the Wordle wordlists takes about a minute (73 seconds) but only needs to be completed the first run of the application.
+Finding maximum-entropy guesses takes less than a second for these small word-lengths.
+
+## Installation
+
+### Pip
+Install dependencies using `pip install -r requirements.txt`
+
+### Conda
+Install dependencies into a conda environment (named "wordle_solver")
 ```
 conda env create -f environment.yml
 ```
@@ -38,26 +42,24 @@ and activate the environment.
 conda activate wordle_solver
 ```
 
-# Pip Installation
-Install dependencies using pip install -r requirements.txt
 
-To use the simple commandline app with the python interpreter, simply:
+## Usage
+To use the simple commandline app:
 
 ```
->>> python3 src/app.py
-Checking existance of precompted data...
-Loading data...
+$ python -m wordler
+Reading precomputed data...
 Guess SOARE (entropy 5.89)
 Enter Wordle response for "SOARE" (0=gray, 1=yellow, 2=green):	00000
 Guess CLINT (entropy 5.51)
 Enter Wordle response for "CLINT" (0=gray, 1=yellow, 2=green):	01102
-Choose randomly from "LIGHT" or "LIMIT"
->>>
+Choose randomly from "LIMIT" or "LIGHT"
 ```
 
 Here's an example with Absurdle:
 ```
->>> wordler.start(max_guesses=10, custom_start="arise")
+$ python -m wordler --custom-start arise
+Reading precomputed data...
 Guess ARISE (entropy 5.82)
 Enter Wordle response for "ARISE" (0=gray, 1=yellow, 2=green):	00000
 Guess MULCH (entropy 5.21)
