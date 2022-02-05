@@ -15,7 +15,7 @@ def run():
     with pkg_resources.open_text(resources, "mystery_words.txt") as fi:
         HIDDEN_WORDS = [line.strip() for line in fi.readlines()]
 
-    pool = multiprocessing.Pool(8)
+    pool = multiprocessing.Pool(multiprocessing.cpu_count())
 
     combos = list(product(GUESS_WORDS, HIDDEN_WORDS))
     guesses = [t[0] for t in combos]
