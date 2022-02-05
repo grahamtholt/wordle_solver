@@ -28,20 +28,10 @@ Precomputing the colorings for the Wordle wordlists takes about a minute (73 sec
 Finding maximum-entropy guesses takes less than a second for these small word-lengths.
 
 ## Installation
-
-### Pip
-Install dependencies using `pip install -r requirements.txt`
-
-### Conda
-Install dependencies into a conda environment (named "wordle_solver")
+Install using pip:
 ```
-conda env create -f environment.yml
+python -m pip install git+https://github.com/grahamtholt/wordle_solver.git
 ```
-and activate the environment.
-```
-conda activate wordle_solver
-```
-
 
 ## Usage
 To use the simple commandline app:
