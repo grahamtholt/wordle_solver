@@ -1,22 +1,21 @@
-import solver
-import pandas as pd
 from re import sub
+
+import pandas as pd
+
+from wordler.utils import solver
 
 DEBUG = False
 
 
 class Wordler:
-    def __init__(self, datafile: str = "./resources/data.parquet"):
+    def __init__(self, data: pd.DataFrame):
         self.word_length = 5
-        self.datafile = datafile
-        self.data = None
+        self.data = data
 
-        # State will change on start
+        # State that will change
         self.observations = []
-        self.sol_size = None
+        self.sol_size = data.shape[0]
         self.partition = {}
-
-        self.load_data()
 
     def start(self, max_guesses=6, custom_start=None):
         self.loop(max_guesses, custom_start)
@@ -44,12 +43,6 @@ class Wordler:
             print(f"Choose {part_string}")
         else:
             print("No compatible words found.")
-
-    @solver.timing(DEBUG)
-    def load_data(self):
-        print("Loading data...")
-        self.data = pd.read_parquet(self.datafile)
-        self.sol_size = self.data.shape[0]
 
     def reset(self):
         self.observations = []

@@ -1,7 +1,8 @@
-import pandas as pd
-import numpy as np
 import time
 from functools import wraps
+
+import pandas as pd
+import numpy as np
 from numba import njit
 
 DEBUG = False

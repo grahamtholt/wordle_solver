@@ -1,21 +1,37 @@
 import pandas as pd
 import time
-import solver
 import multiprocessing
 from random import randint
 import numpy as np
-import time
+import argparse
+import importlib.resources as pkg_resources
+from functools import partial
+from math import floor
+
+from wordler.utils import solver, precompute_data
+from wordler import resources
 
 FIRST_GUESS = "soare"
-with open('resources/mystery_words.txt', 'r') as fi:
-    HIDDEN_WORDS = [l.strip() for l in fi.readlines()]
-
-DATA = pd.read_parquet('resources/data.parquet')
-SOLS = DATA.shape[0]
 CORRECT = 242
 
+print("Reading precomputed data...")
+try:
+    with pkg_resources.path(resources, "data.parquet") as pq:
+        DATA = pd.read_parquet(pq)
+except FileNotFoundError:
+    print("Cached result not found, calculating colorings...")
+    DATA = precompute_data.run()
+try:
+    with pkg_resources.open_text(resources, 'mystery_words.txt') as fi:
+        HIDDEN_WORDS = [line.strip() for line in fi.readlines()]
+except FileNotFoundError:
+    print("Error: Hidden-word list not found. Exiting...")
+    exit()
 
-def find_wordle(mystery, max_guesses=6):
+SOLS = DATA.shape[0]
+
+
+def find_wordle(mystery, randomize=False, max_guesses=6):
     start = time.perf_counter()
     counter = 0
     observations = []
@@ -38,7 +54,10 @@ def find_wordle(mystery, max_guesses=6):
     # Down to two or one words
     if sol_size == 2:
         counter = counter + 1
-        choice = randint(0, 1)
+        if randomize:
+            choice = randint(0, 1)
+        else:
+            choice = 0
         guess = partition[choice]
         guesses.append(guess)
         guess_entropies.append(np.nan)
@@ -90,17 +109,44 @@ def find_wordle(mystery, max_guesses=6):
     return stats
 
 
-def pad(x: list, l=6):
-    return x + [np.nan] * (l - len(x))
+def pad(x: list, list_len=6):
+    return x + [np.nan] * (list_len - len(x))
 
 
-def main():
-    pool = multiprocessing.Pool(8)
-    stats = pool.map(find_wordle, HIDDEN_WORDS)
+def main(args):
+    pool = multiprocessing.Pool(floor(0.5*multiprocessing.cpu_count()))
+    allstart = time.perf_counter()
+
+    wordle_withargs = partial(find_wordle,
+                              randomize=args.randomize,
+                              max_guesses=args.max_guesses,
+                              )
+    stats = pool.map(wordle_withargs, HIDDEN_WORDS)
+    #stats = [wordle_withargs(word) for word in HIDDEN_WORDS]
+
+    allstop = time.perf_counter()
 
     data = pd.DataFrame(stats)
-    data.to_csv('guessing_all_wordles.csv')
+    data.to_csv(args.output)
+    print(f'took {allstop-allstart} sec')
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-r', '--randomize',
+                        action='store_true',
+                        help=('Randomize selection when there are only two '
+                              'possible words.'),
+                        )
+    parser.add_argument('-g', '--max_guesses',
+                        type=int,
+                        default=6,
+                        help=('Maximum number of allowed guesses.'),
+                        )
+    parser.add_argument('-o', '--output',
+                        type=str,
+                        default='test_guessing_all_wordles.csv',
+                        help=('Output file for statistics.')
+                        )
+    args = parser.parse_args()
+    main(args)
