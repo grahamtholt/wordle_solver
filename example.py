@@ -1,9 +1,7 @@
 import pandas as pd
-import sys
 import time
 import importlib.resources as pkg_resources
 
-sys.path.append('./src/')
 from wordler import resources
 from wordler.utils import solver, precompute_data
 
