@@ -28,12 +28,15 @@ class Wordler:
             if custom_start and counter == 0:
                 guess, entropy = self.custom_guess(custom_start)
             else:
-                guess, entropy = self.generate_guess()
+                guesses = self.generate_guess()
+                accepted = False
+                while not accepted:
+                    guess, entropy = next(guesses)
+                    print(f"Guess {guess.upper()} (entropy {entropy:.2f})")
+                    accepted, valid = self.receive_observation(guess)
+                    if not valid:
+                        return
             counter = counter + 1
-            print(f"Guess {guess.upper()} (entropy {entropy:.2f})")
-            valid = self.receive_observation(guess)
-            if not valid:
-                return
             self.generate_partition()
 
         part_string = ' or '.join([f"\"{w.upper()}\"" for w in self.partition])
@@ -50,25 +53,36 @@ class Wordler:
         self.partition = {}
 
     def generate_guess(self):
-        return solver.get_optimal_guess(self.data, self.observations)
+        return solver.get_optimal_guesses(self.data, self.observations)
 
     def custom_guess(self, word):
         return word, solver.get_entropy(word, self.data, self.observations)
 
     def receive_observation(self, guess, tries_remaining=3):
+        """Receive user input
+
+        Args:
+            guess:  the guessed word
+            tries_remaining:    the number of input attempts allowed
+
+        Returns:
+            <boolean>:  Whether or not the input is valid (trinary number)
+            <boolean>:  Whether or not the guessed word was accepted by Wordle
+        """
         raw = input((f"Enter Wordle response for \"{guess.upper()}\" "
                      "(0=gray, 1=yellow, 2=green):\t"))
-        clean = sub("[^012]", "", raw.strip())
+        clean = sub("[^012X]", "", raw.strip())
         if len(clean) == self.word_length:
             obs = int(clean, base=3)
             self.observations.append((guess, obs))
-            return True
+            return True, True
+        elif clean == "X":
+            return False, True
         elif tries_remaining > 0:
             print("Invalid input. Please try again...")
-            self.receive_observation(guess, tries_remaining=tries_remaining-1)
-            return True
+            return self.receive_observation(guess, tries_remaining=tries_remaining-1)
         else:
-            return False
+            return False, False
 
     def generate_partition(self):
         self.partition = set(solver.get_partition(

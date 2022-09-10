@@ -101,6 +101,30 @@ def get_optimal_guess(data: pd.DataFrame, obs: list = []):
     return entropies.idxmax(), entropies.max()
 
 
+def get_optimal_guesses(data: pd.DataFrame, obs: list = []):
+    """Get optimal guesses given previous observations.
+
+    Args:
+        data: a DataFrame containing all possible function outputs
+        obs: a list of observed guess, value pairs
+
+    Returns:
+        A generator of words that maximizes the partition entropy over the
+        remaining possible hidden words
+        The partition entropy of the returned word
+    """
+    if obs:
+        entropies = get_entropies(get_partition(data, obs)).sort_values(
+            ascending=False
+        )
+    else:
+        entropies = get_entropies(data).sort_values(
+            ascending=False
+        )
+    #return entropies.idxmax(), entropies.max()
+    return zip(entropies.index, entropies)
+
+
 @timing(DEBUG)
 def get_partition(data: pd.DataFrame, obs: list):
     """Get the possible partition of hidden words given previous observations
