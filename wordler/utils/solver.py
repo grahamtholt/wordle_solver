@@ -75,10 +75,7 @@ def get_entropy(word, data: pd.DataFrame, obs: list = []):
         possible hidden words
         The partition entropy of the returned word
     """
-    if obs:
-        entropies = get_entropies(get_partition(data, obs))
-    else:
-        entropies = get_entropies(data)
+    entropies = get_entropies(get_partition(data, obs))
     return entropies.loc[word]
 
 
@@ -94,10 +91,7 @@ def get_optimal_guess(data: pd.DataFrame, obs: list = []):
         possible hidden words
         The partition entropy of the returned word
     """
-    if obs:
-        entropies = get_entropies(get_partition(data, obs))
-    else:
-        entropies = get_entropies(data)
+    entropies = get_entropies(get_partition(data, obs))
     return entropies.idxmax(), entropies.max()
 
 
@@ -113,20 +107,13 @@ def get_optimal_guesses(data: pd.DataFrame, obs: list = []):
         remaining possible hidden words
         The partition entropy of the returned word
     """
-    if obs:
-        entropies = get_entropies(get_partition(data, obs)).sort_values(
-            ascending=False
-        )
-    else:
-        entropies = get_entropies(data).sort_values(
-            ascending=False
-        )
-    #return entropies.idxmax(), entropies.max()
+    entropies = get_entropies(get_partition(data, obs)).sort_values(
+        ascending=False)
     return zip(entropies.index, entropies)
 
 
-@timing(DEBUG)
-def get_partition(data: pd.DataFrame, obs: list):
+@ timing(DEBUG)
+def get_partition(data: pd.DataFrame, obs: list = []):
     """Get the possible partition of hidden words given previous observations
 
     Args:
@@ -137,8 +124,11 @@ def get_partition(data: pd.DataFrame, obs: list):
         A subframe of <data> that represents all hidden words consistent with
         the observations.
     """
-    indexer = pd.DataFrame([data[o[0]] == o[1] for o in obs]).all()
-    return data[indexer]
+    if obs:
+        indexer = pd.DataFrame([data[o[0]] == o[1] for o in obs]).all()
+        return data[indexer]
+    else:
+        return data
 
 
 def evaluate_guess(guess: str, mystery: str):
