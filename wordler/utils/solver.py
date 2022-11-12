@@ -107,9 +107,14 @@ def get_optimal_guesses(data: pd.DataFrame, obs: list = []):
         remaining possible hidden words
         The partition entropy of the returned word
     """
-    entropies = get_entropies(get_partition(data, obs)).sort_values(
-        ascending=False)
-    return zip(entropies.index, entropies)
+    partition = get_partition(data, obs)
+    entropies = get_entropies(partition)
+    pref_hidden = entropies.sort_index(ascending=False,
+                                         key=lambda ind: ind.map(
+                                             lambda word: word in partition.index)
+                                         )
+    pref_entropy = pref_hidden.sort_values(ascending=False)
+    return zip(pref_entropy.index, pref_entropy)
 
 
 @ timing(DEBUG)
